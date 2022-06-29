@@ -1,0 +1,6 @@
+# ninja log v5
+1	277	6782353463294607	build.ninja	9163c8403fd88e32
+0	831	6782354015109650	CMakeFiles/bitvector.dir/main.cpp.obj	72e6d90cb036f2d0
+833	982	6782354016595675	bitvector.exe	47c1b8af8ca5ba47
+4	881	6782354331354358	CMakeFiles/bitvector.dir/main.cpp.obj	72e6d90cb036f2d0
+882	1082	6782354333339046	bitvector.exe	47c1b8af8ca5ba47
