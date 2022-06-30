@@ -3,4 +3,4 @@ project(bitvector)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(bitvector main.cpp cmake-build-debug/pages.h)
+add_executable(bitvector main.cpp Bitvector.h)

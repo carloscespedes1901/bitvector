@@ -110,7 +110,7 @@
 		},
 		{
 			"backtrace" : 1,
-			"path" : "cmake-build-debug/pages.h",
+			"path" : "Bitvector.h",
 			"sourceGroupIndex" : 1
 		}
 	],
