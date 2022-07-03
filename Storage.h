@@ -6,25 +6,23 @@
 #define BITVECTOR_STORAGE_H
 
 #include <string>
-#include <string.h>
 #include <fstream>
 #include <bits/stdc++.h>
+#include <filesystem>
 
 using namespace std;
+namespace fs = filesystem;
 
 template<typename T>
 class Storage {
 private:
     string fileName;
-    T pages;
+
     int pageSize;
+
     fstream file;
 public:
     Storage(string name, int D);
-
-    Storage(string name);
-
-    int getNumberOfPages();
 
     int appendPage(const T buffer[]);
 
@@ -32,7 +30,7 @@ public:
 
     int readPage(T buffer[], int p);
 
-    int open(string mode);
+    int open();
 
     void close();
 
@@ -40,66 +38,52 @@ public:
 
 template<typename T>
 Storage<T>::Storage(string fileName, int D) {
+    ofstream crearArchivo(fileName);
+    if(!crearArchivo.is_open()){
+        cout << "Error" << endl;
+    }
+    crearArchivo.close();
     Storage::fileName = fileName;
-    Storage::pages = 0;
     Storage::pageSize = D * sizeof(T);
 }
 
 template<typename T>
 int Storage<T>::appendPage(const T buffer[]) {
+    file.seekp(0, ios::end);
     file.write((char *) (buffer), pageSize);
-    Storage::pages++;
     return 0;
 }
 
 template<typename T>
 int Storage<T>::writePage(const T buffer[], int p) {
-    if (p >= Storage::pages) {
+    file.seekp(0, ios::end);
+    if (p >= file.tellp()/pageSize) {
         return -1;
     }
     file.seekp(p * pageSize);
-    file.write((char *) (buffer), Storage::pageSize);
+    file.write((char *) (buffer), pageSize);
     return 0;
 }
 
 template<typename T>
 int Storage<T>::readPage(T buffer[], int p) {
-    if (p >= Storage::pages) {
+    file.seekg(0, ios::end);
+    if (p >= file.tellg()/pageSize) {
         return -1;
     }
     file.seekg(p * pageSize);
-    file.readsome((char *) (buffer), Storage::pageSize);
+    file.readsome((char *) (buffer), pageSize);
     return 0;
 }
 
-template<typename T>
-int Storage<T>::getNumberOfPages() { return Storage::pages; }
 
 //modes: r, read; w: write, rw:read and write, a: append
 template<typename T>
-int Storage<T>::open(string mode) {
-    ios_base::openmode __mode = ios::binary;
-
-    if (mode.compare("r")) {
-        __mode |= ios::in;
-    } else if (mode.compare("w")) {
-        __mode |= ios::out;
-    } else if (mode.compare("rw")) {
-        __mode |= ios::out | ios::in;
-    } else if (mode.compare("a")) {
-        __mode |= ios::ate;
-    } else {
-        return -1;
-    }
-    file.open(fileName, __mode);
+int Storage<T>::open() {
+    file.open(fileName, ios::in | ios::out | ios::binary);
     if (!file.is_open()) {
         return -1;
     }
-    const auto begin = file.tellg();
-    file.seekg(0, ios::end);
-    const auto end = file.tellg();
-    const auto fsize = (end - begin);
-    pages = fsize / pageSize;
     return 0;
 }
 
