@@ -1,3 +1,0 @@
-/cygdrive/c/Users/ThinkBook14G2/CLionProjects/bitvector/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/cygdrive/c/Users/ThinkBook14G2/CLionProjects/bitvector/cmake-build-debug/CMakeFiles/edit_cache.dir
-/cygdrive/c/Users/ThinkBook14G2/CLionProjects/bitvector/cmake-build-debug/CMakeFiles/bitvector.dir

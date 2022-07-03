@@ -1,4 +1,0 @@
-C:\Users\ThinkBook14G2\AppData\Local\JetBrains\CLion2021.3\cygwin_cmake\bin\cmake.exe -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /cygdrive/c/Users/ThinkBook14G2/CLionProjects/bitvector
--- Configuring done
--- Generating done
--- Build files have been written to: /cygdrive/c/Users/ThinkBook14G2/CLionProjects/bitvector/cmake-build-debug
