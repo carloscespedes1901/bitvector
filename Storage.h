@@ -28,9 +28,15 @@ public:
 
     int appendPage(const w buffer[]);
 
+    int appendPages(const w buffer[], int n);
+
     int writePage(const w buffer[], int p);
 
+    int writePages(const w buffer[], int p, int n);
+
     int readPage(w buffer[], int p);
+
+    int readPages(w buffer[], int p, int n);
 
     int open();
 
@@ -63,6 +69,13 @@ int Storage<w>::appendPage(const w buffer[]) {
 }
 
 template<typename w>
+int Storage<w>::appendPages(const w buffer[], int n) {
+    file.seekp(0, ios::end);
+    file.write(reinterpret_cast<const char*> (buffer), pageSize*n);
+    return 0;
+}
+
+template<typename w>
 int Storage<w>::writePage(const w buffer[], int p) {
     file.seekp(0, ios::end);
     if (p >= file.tellp()/pageSize) {
@@ -74,6 +87,18 @@ int Storage<w>::writePage(const w buffer[], int p) {
 }
 
 template<typename w>
+int Storage<w>::writePages(const w buffer[], int p, int n) {
+    file.seekp(0, ios::end);
+    if (p >= file.tellp()/pageSize) {
+        return -1;
+    }
+
+    file.seekp(p * pageSize);
+    file.write(reinterpret_cast<const char*> (buffer), pageSize*n);
+    return 0;
+}
+
+template<typename w>
 int Storage<w>::readPage(w buffer[], int p) {
     file.seekg(0, ios::end);
     if (p >= file.tellg()/pageSize) {
@@ -81,6 +106,17 @@ int Storage<w>::readPage(w buffer[], int p) {
     }
     file.seekg(p * pageSize);
     file.read(reinterpret_cast<char*> (buffer), pageSize);
+    return 0;
+}
+
+template<typename w>
+int Storage<w>::readPages(w buffer[], int p, int n) {
+    file.seekg(0, ios::end);
+    if (p >= file.tellg()/pageSize) {
+        return -1;
+    }
+    file.seekg(p * pageSize);
+    file.read(reinterpret_cast<char*> (buffer), pageSize*n);
     return 0;
 }
 
