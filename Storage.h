@@ -7,13 +7,12 @@
 
 #include <string>
 #include <fstream>
-#include <bits/stdc++.h>
 #include <filesystem>
 
 using namespace std;
 namespace fs = filesystem;
 
-template<typename T>
+template<typename w>
 class Storage {
 private:
     string fileName;
@@ -21,65 +20,72 @@ private:
     int pageSize;
 
     fstream file;
+
 public:
     Storage(string name, int D);
 
-    int appendPage(const T buffer[]);
+    ~Storage();
 
-    int writePage(const T buffer[], int p);
+    int appendPage(const w buffer[]);
 
-    int readPage(T buffer[], int p);
+    int writePage(const w buffer[], int p);
+
+    int readPage(w buffer[], int p);
 
     int open();
 
     void close();
-
 };
 
-template<typename T>
-Storage<T>::Storage(string fileName, int D) {
-    ofstream crearArchivo(fileName);
-    if(!crearArchivo.is_open()){
-        cout << "Error" << endl;
+template<typename w>
+Storage<w>::Storage(string fileName, int D) {
+    if(!fs::exists(fileName)){
+        ofstream crearArchivo(fileName);
+        if(!crearArchivo.is_open()){
+            cout << "Error al crear archivo" << endl;
+        }
+        crearArchivo.close();
     }
-    crearArchivo.close();
     Storage::fileName = fileName;
-    Storage::pageSize = D * sizeof(T);
+    Storage::pageSize = D * sizeof(w);
 }
 
-template<typename T>
-int Storage<T>::appendPage(const T buffer[]) {
+template<typename w>
+Storage<w>::~Storage() {
+    close();
+}
+
+template<typename w>
+int Storage<w>::appendPage(const w buffer[]) {
     file.seekp(0, ios::end);
-    file.write((char *) (buffer), pageSize);
+    file.write(reinterpret_cast<const char*> (buffer), pageSize);
     return 0;
 }
 
-template<typename T>
-int Storage<T>::writePage(const T buffer[], int p) {
+template<typename w>
+int Storage<w>::writePage(const w buffer[], int p) {
     file.seekp(0, ios::end);
     if (p >= file.tellp()/pageSize) {
         return -1;
     }
     file.seekp(p * pageSize);
-    file.write((char *) (buffer), pageSize);
+    file.write(reinterpret_cast<const char*> (buffer), pageSize);
     return 0;
 }
 
-template<typename T>
-int Storage<T>::readPage(T buffer[], int p) {
+template<typename w>
+int Storage<w>::readPage(w buffer[], int p) {
     file.seekg(0, ios::end);
     if (p >= file.tellg()/pageSize) {
         return -1;
     }
     file.seekg(p * pageSize);
-    file.readsome((char *) (buffer), pageSize);
+    file.read(reinterpret_cast<char*> (buffer), pageSize);
     return 0;
 }
 
-
-//modes: r, read; w: write, rw:read and write, a: append
-template<typename T>
-int Storage<T>::open() {
+template<typename w>
+int Storage<w>::open() {
     file.open(fileName, ios::in | ios::out | ios::binary);
     if (!file.is_open()) {
         return -1;
@@ -87,8 +93,8 @@ int Storage<T>::open() {
     return 0;
 }
 
-template<typename T>
-void Storage<T>::close() {
+template<typename w>
+void Storage<w>::close() {
     file.close();
 
 }
