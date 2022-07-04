@@ -1,5 +1,5 @@
 #include <iostream>
-#include <stdint.h>
+#include <cstdint>
 #include "Storage.h"
 
 
@@ -35,20 +35,6 @@ void testPageByPage(){
     for(int i=0; i < 8; i++){
         std::cout << "readBuff[" << i << "] = " << readBuff[i] << endl;
     }
-
-    /*
-    std::cout << "Leyendo todo el bitvector: " << std::endl;
-
-    for(int i = 0; i < 20; i++){
-        memset(readBuff, 0, 8*sizeof(uint64_t));
-        std::cout << "Leyendo pagina " << i << " a buffer: " << bitv.readPage(readBuff, i) << std::endl;
-        std::cout << "contenido de mi buffer: " << std::endl;
-
-        for(int i=0; i < 8; i++){
-            std::cout << "readBuff[" << i << "] = " << readBuff[i] << endl;
-        }
-    }
-    */
 
     bitv.close();
 }
@@ -94,20 +80,6 @@ void testSeveralPages(){
     for(int i=0; i < 8*4; i++){
         std::cout << "readBuff[" << i << "] = " << readBuff[i] << endl;
     }
-
-    /*
-    std::cout << "Leyendo todo el bitvector: " << std::endl;
-
-    for(int i = 0; i < 20; i++){
-        memset(readBuff, 0, 8*sizeof(uint64_t));
-        std::cout << "Leyendo pagina " << i << " a buffer: " << bitv.readPage(readBuff, i) << std::endl;
-        std::cout << "contenido de mi buffer: " << std::endl;
-
-        for(int i=0; i < 8; i++){
-            std::cout << "readBuff[" << i << "] = " << readBuff[i] << endl;
-        }
-    }
-    */
 
     bitv.close();
 }
