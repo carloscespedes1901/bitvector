@@ -8,131 +8,75 @@
 #include <string>
 #include <fstream>
 #include <filesystem>
+#include <cassert>
 
-using namespace std;
-namespace fs = filesystem;
+namespace fs = std::filesystem;
 
 template<typename w>
 class Storage {
 private:
-    string fileName;
+    std::string fileName;
 
-    int pageSize;
+    int& pageSize;
 
-    fstream file;
+    int pages;
+
+    std::fstream file;
 
 public:
-    Storage(string name, int D);
+    Storage(std::string fileName, int& pageSize) : pageSize(pageSize){
+
+        Storage::fileName = fileName;
+        pages = 0;
+    }
 
     ~Storage();
 
-    int appendPage(const w buffer[]);
+    void appendPage(const w buffer[]);
 
-    int appendPages(const w buffer[], int n);
+    void writePage(const w buffer[], uint64_t p);
 
-    int writePage(const w buffer[], int p);
+    void readPage(w buffer[], uint64_t p);
 
-    int writePages(const w buffer[], int p, int n);
-
-    int readPage(w buffer[], int p);
-
-    int readPages(w buffer[], int p, int n);
-
-    int open();
-
-    void close();
+    bool open();
 };
 
 template<typename w>
-Storage<w>::Storage(string fileName, int D) {
-    if(!fs::exists(fileName)){
-        ofstream crearArchivo(fileName);
-        if(!crearArchivo.is_open()){
-            cout << "Error al crear archivo" << endl;
-        }
-        crearArchivo.close();
-    }
-    Storage::fileName = fileName;
-    Storage::pageSize = D * sizeof(w);
-}
-
-template<typename w>
 Storage<w>::~Storage() {
-    close();
+    file.close();
 }
 
 template<typename w>
-int Storage<w>::appendPage(const w buffer[]) {
-    file.seekp(0, ios::end);
+void Storage<w>::appendPage(const w buffer[]) {
+    assert (file.is_open());
+    file.seekp(0, std::ios::end);
     file.write(reinterpret_cast<const char*> (buffer), pageSize);
-    return 0;
+    pages++;
 }
 
 template<typename w>
-int Storage<w>::appendPages(const w buffer[], int n) {
-    file.seekp(0, ios::end);
-    file.write(reinterpret_cast<const char*> (buffer), pageSize*n);
-    return 0;
-}
-
-template<typename w>
-int Storage<w>::writePage(const w buffer[], int p) {
-    file.seekp(0, ios::end);
-    if (p >= file.tellp()/pageSize) {
-        return -1;
-    }
+void Storage<w>::writePage(const w buffer[], uint64_t p) {
+    assert (p < pages);
+    assert(file.is_open());
     file.seekp(p * pageSize);
     file.write(reinterpret_cast<const char*> (buffer), pageSize);
-    return 0;
+    pages++;
 }
 
-template<typename w>
-int Storage<w>::writePages(const w buffer[], int p, int n) {
-    file.seekp(0, ios::end);
-    if (p >= file.tellp()/pageSize) {
-        return -1;
-    }
-
-    file.seekp(p * pageSize);
-    file.write(reinterpret_cast<const char*> (buffer), pageSize*n);
-    return 0;
-}
 
 template<typename w>
-int Storage<w>::readPage(w buffer[], int p) {
-    file.seekg(0, ios::end);
-    if (p >= file.tellg()/pageSize) {
-        return -1;
-    }
+void Storage<w>::readPage(w buffer[], uint64_t p) {
+    assert (p < pages);
+    assert(file.is_open());
     file.seekg(p * pageSize);
     file.read(reinterpret_cast<char*> (buffer), pageSize);
-    return 0;
 }
 
 template<typename w>
-int Storage<w>::readPages(w buffer[], int p, int n) {
-    file.seekg(0, ios::end);
-    if (p >= file.tellg()/pageSize) {
-        return -1;
-    }
-    file.seekg(p * pageSize);
-    file.read(reinterpret_cast<char*> (buffer), pageSize*n);
-    return 0;
-}
-
-template<typename w>
-int Storage<w>::open() {
-    file.open(fileName, ios::in | ios::out | ios::binary);
-    if (!file.is_open()) {
-        return -1;
-    }
-    return 0;
-}
-
-template<typename w>
-void Storage<w>::close() {
-    file.close();
-
+bool Storage<w>::open() {
+    if(!file.is_open())
+        file.open(fileName, std::ios::in | std::ios::out | std::ios::binary);
+    return file.is_open();
 }
 
 #endif //BITVECTOR_STORAGE_H
