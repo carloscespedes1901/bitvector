@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/PruebasC++.iml" filepath="$PROJECT_DIR$/.idea/PruebasC++.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/bitvector.iml" filepath="$PROJECT_DIR$/.idea/bitvector.iml" />
     </modules>
   </component>
 </project>

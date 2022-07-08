@@ -1,6 +1,6 @@
 #include <iostream>
 #include <cstdlib>
-#include "Bitvect.h"
+#include "ExternalBitvect.h"
 
 using namespace std;
 
@@ -16,7 +16,7 @@ int main() {
     }
 
     // Objetos a probar (solo access en bitvector)
-    Bitvector<uint64_t> pruebaVector("Testing.bin", 10);
+    ExternalBitvector<uint64_t> pruebaVector("Testing.bin", 10);
     Storage<uint64_t>* pruebaStorage = pruebaVector.getStorage();
 
     // LLenamos 10 paginas con basura
