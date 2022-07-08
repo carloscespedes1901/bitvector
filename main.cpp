@@ -12,7 +12,7 @@ int main() {
     //LLenamos un buffer con basura
     for (int i = 0; i < 10; i++){
         buffer[i] = UINT32_MAX;
-        cout << "buffer[" << i << "] = " << buffer[i] << endl;
+        cout << hex << "buffer[" << i << "] = " << buffer[i] << endl;
     }
 
     // Objetos a probar (solo access en bitvector)
@@ -25,10 +25,14 @@ int main() {
     }
 
     // Leemos pagina 6 (la 7ma pagina contando desde el 1)
-    pruebaStorage->readPage(bufferRead, 1);
+    pruebaStorage->readPage(bufferRead, 6);
     for (int i = 0; i < 10; i++){
-        cout << "bufferRead[" << i << "] = " << bufferRead[i] << endl;
+        cout << "bufferRead[" << i << "] = " << hex << bufferRead[i] << dec << endl;
     }
+
+    // Accedemos a los primeros 256 bits
+    for(int i = 0; i < 256; i++)
+        cout << "prueaVector[" << i+1 << "] = " << hex << pruebaVector[i+1] << dec << endl;
 
     // Accedemos a 10 bits randoms en el rango de 0 a 10*pageSize*8
     for(int i = 0; i < 10; i++){

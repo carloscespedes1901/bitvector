@@ -49,29 +49,28 @@ Bitvector<w>::~Bitvector(){
 
 template<typename w>
 int Bitvector<w>::operator[](uint64_t b){
+    uint64_t bitsPerPage = 8*pageSize;
+    uint64_t bitsPerWord = 8*sizeof(w);
+    assert(b > 0 && b < (theStorage->getPages()) * bitsPerPage);
+    b--;
 
-    /* Comentar la explicación mas detallada */
-    std::cout << "Pagina a obtener el bit: " << b << "/(8*" << pageSize;
-    std::cout << ") = " << b/(8*pageSize) << std::endl;
-    /* Comentar la explicación mas detallada */
+    /* BORRAR */
+    //std::cout << std::dec << "Pagina a obtener el bit: " << b << "/(" << bitsPerPage;
+    //std::cout << std::dec << ") = " << b/bitsPerPage << std::endl;
+    /* BORRAR */
 
-    theStorage->readPage(bufferPage, b/(8*pageSize));
+    theStorage->readPage(bufferPage, b/bitsPerPage);
 
-    /* Comentar la explicación mas detallada */
-    std::cout << "Palabra donde se encuentra el bit: " << "(" << b << "%(8*" << pageSize << "))/(8*";
-    std::cout << sizeof(w) << ") = " << (b%(8*pageSize))/(8*sizeof(w)) << std::endl;
-    /* Comentar la explicación mas detallada */
+    /* BORRAR */
+    //std::cout << std::dec << "Palabra donde se encuentra el bit: " << "(" << b << "%(" << bitsPerPage << "))/(";
+    //std::cout << std::dec << bitsPerWord << ") = " << (b%bitsPerPage)/(bitsPerWord) << std::endl;
+    /* BORRAR */
 
-    w& word= bufferPage[(b%(8*pageSize))/(8*sizeof(w))];
+    w& word= bufferPage[(b%bitsPerPage)/(bitsPerWord)];
 
-    /* Comentar la explicación mas detallada */
-    std::cout << "bit de la palabra donde se encuentra el bit: " << b << "%(8*" << sizeof(w) << ") = ";
-    std::cout << b%(8*sizeof(w)) << std::endl;
-    /* Comentar la explicación mas detallada */
-
+    // si access se inicializa en 1 << (epresión) falla.
     w access = 1;
-    access <<= (8*sizeof(w)-1); // si se inicializa 1 << 8*sizeof(w)-1 hay problemas pues toma el 1 como int 1
-    access >>= (b%(8*sizeof(w)));
+    access <<= ((bitsPerWord-1)-b%bitsPerWord); // asume que el bit menos significativo esta mas a la derecha.
     access &= word;
     if(access>0)
         return 1;

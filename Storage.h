@@ -39,6 +39,10 @@ public:
     void readPage(w buffer[], uint64_t p);
 
     bool open();
+
+    int& getPages(){
+        return pages;
+    }
 };
 
 template<typename w>
