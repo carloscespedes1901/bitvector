@@ -19,29 +19,24 @@ class Storage {
 private:
     std::string fileName;
     map<string, string> metaData;
-
     int D;
-public:
-    int getD() const;
-
-private:
-
     int pages;
-
     std::fstream file;
 
 public:
+    int getD() const;
+
     Storage(const std::string fileName, int D);
 
     bool open();
 
     bool create();
 
-    void appendPage(const uint_t buffer[]);
+    virtual void appendPage(const uint_t buffer[]);
 
-    void writePage(const uint_t buffer[], uint_t p);
+    virtual void updatePage(const uint_t buffer[], uint_t p);
 
-    void readPage(uint_t buffer[], uint_t p);
+    virtual void readPage(uint_t *&buffer, uint_t p);
 
     int getPages(){
         return pages;
@@ -58,7 +53,7 @@ public:
         return pageSize()*pages;
     }
 
-    void addMeta(string key, string value){
+    void setMeta(string key, string value){
         metaData[key]=value;
     }
 
@@ -87,7 +82,7 @@ void Storage<uint_t>::appendPage(const uint_t buffer[]) {
 }
 
 template<typename uint_t>
-void Storage<uint_t>::writePage(const uint_t buffer[], uint_t p) {
+void Storage<uint_t>::updatePage(const uint_t buffer[], uint_t p) {
     assert (p < pages);
     assert(file.is_open());
     file.seekp(p * pageSize());
@@ -97,7 +92,7 @@ void Storage<uint_t>::writePage(const uint_t buffer[], uint_t p) {
 
 
 template<typename uint_t>
-void Storage<uint_t>::readPage(uint_t buffer[], uint_t p) {
+void Storage<uint_t>::readPage(uint_t *&buffer, uint_t p) {
     assert (p < pages);
     assert(file.is_open());
     file.seekg(p * pageSize());
