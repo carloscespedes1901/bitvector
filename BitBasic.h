@@ -9,9 +9,6 @@
 #include <bit>
 using namespace std;
 namespace BitBasic {
-
-    uint64_t MASK_11 = 0b11;
-
 //indexa los bits de izquierda a derecha hasta el infinito...
     template<typename uint_t>
     inline bool access(const uint_t *e, const uint_t p, const int W) {

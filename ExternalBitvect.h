@@ -17,9 +17,9 @@ template<typename uint_t>
 class ExternalBitvector {
 private:
     unsigned long long length;//in bits
-    Storage<uint_t> theStorage;
+    Storage<uint_t> &theStorage;
 public:
-    ExternalBitvector(Storage<uint_t> theStorage);
+    ExternalBitvector(Storage<uint_t> &theStorage);
 
     ~ExternalBitvector();
 
@@ -46,7 +46,7 @@ private:
 };
 
 template<typename uint_t>
-ExternalBitvector<uint_t>::ExternalBitvector(Storage<uint_t> storage):theStorage(storage) {}
+ExternalBitvector<uint_t>::ExternalBitvector(Storage<uint_t> &storage):theStorage(storage) {}
 
 template<typename uint_t>
 ExternalBitvector<uint_t>::~ExternalBitvector() {
@@ -122,12 +122,13 @@ void ExternalBitvector<uint_t>::bitSet(uint_t b) {
     uint_t bitsPerPage = theStorage.bitsPerPage();
     uint_t bitsPerWord = 8 * sizeof(uint_t);
 
-    uint_t bufferPage[theStorage.getD()];
+    uint_t *bufferPage=new uint_t[theStorage.getD()];
     int page = b / bitsPerPage;
     theStorage.readPage(bufferPage, page);
     uint_t pos = b % bitsPerPage;
     BitBasic::BitSet(bufferPage, pos, bitsPerWord);
     theStorage.updatePage(bufferPage, page);
+    delete[] bufferPage;
 }
 
 template<typename uint_t>
@@ -135,12 +136,13 @@ void ExternalBitvector<uint_t>::bitClean(uint_t b) {
     uint_t bitsPerPage = theStorage.bitsPerPage();
     uint_t bitsPerWord = 8 * sizeof(uint_t);
     assert(b >= 0 && b < length);
-    uint_t bufferPage[theStorage.getD()];
+    uint_t *bufferPage=new uint_t[theStorage.getD()];
     int page = b / bitsPerPage;
     theStorage.readPage(bufferPage, b / bitsPerPage);
     uint_t pos = b % bitsPerPage;
     BitBasic::BitClear(bufferPage, pos, bitsPerWord);
     theStorage.updatePage(bufferPage, page);
+    delete[] bufferPage;
 }
 
 template<typename uint_t>
@@ -149,14 +151,15 @@ uint_t ExternalBitvector<uint_t>::rank(uint_t b) {
 
     uint_t bitsPerPage = theStorage.bitsPerPage();
     uint_t bitsPerWord = 8 * sizeof(uint_t);
-    uint_t bufferPage[theStorage.getD()];
+    uint_t *bufferPage=new uint_t[theStorage.getD()];
     int page = b / bitsPerPage;
     if (theStorage.getPages() < page) resize(page);
     theStorage.readPage(bufferPage, b / bitsPerPage);
     uint_t pos = b % bitsPerPage;
     uint_t rank = bufferPage[theStorage.getD() - 1];
-    return rank + BitBasic::Rank(bufferPage, pos, bitsPerWord);
-
+    uint_t out= rank + BitBasic::Rank(bufferPage, pos, bitsPerWord);
+    delete[] bufferPage;
+    return out;
 }
 
 template<typename uint_t>
@@ -164,12 +167,13 @@ void ExternalBitvector<uint_t>::buildRank() {
     int paginas = theStorage.getPages();
     uint_t bitsPerPage = theStorage.bitsPerPage();
     uint_t bitsPerWord = 8 * sizeof(uint_t);
-    uint_t bufferPage[theStorage.getD()];
+    uint_t* bufferPage=new uint_t[theStorage.getD()];
     for (int i = 0; i < paginas; i++) {
         theStorage.readPage(bufferPage, i / bitsPerPage);
         bufferPage[theStorage.getD() - 1] = BitBasic::Rank(bufferPage, bitsPerPage - 1, bitsPerWord);
         theStorage.updatePage(bufferPage, i);
     }
+    delete[] bufferPage;
 }
 
 

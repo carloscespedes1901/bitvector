@@ -3,42 +3,53 @@
 #include "ExternalBitvect.h"
 
 using namespace std;
-
-int main() {
+void test_Storage(){
     cout << "Size of uint64_t = " << sizeof(uint64_t) << endl;
-    uint64_t buffer[10];
-    uint64_t bufferRead[10]{0};
+    uint64_t *buffer = new uint64_t[10];
+    uint64_t *bufferRead = new uint64_t[10]{0};
 
     //LLenamos un buffer con basura
-    for (int i = 0; i < 10; i++){
+    for (int i = 0; i < 10; i++) {
         buffer[i] = UINT32_MAX;
         cout << hex << "buffer[" << i << "] = " << buffer[i] << endl;
     }
-
-    // Objetos a probar (solo access en bitvector)
-    ExternalBitvector<uint64_t> pruebaVector("Testing.bin", 10);
-    Storage<uint64_t>* pruebaStorage = pruebaVector.getStorage();
-
+    Storage<uint64_t> pruebaStorage("pruebaStorage3.bin", 10);
+    pruebaStorage.open();
     // LLenamos 10 paginas con basura
-    for(int i = 0; i < 10; i++){
-        pruebaStorage->appendPage(buffer);
+    for (int i = 0; i < 10; i++) {
+        pruebaStorage.appendPage(buffer);
     }
 
     // Leemos pagina 6 (la 7ma pagina contando desde el 1)
-    pruebaStorage->readPage(bufferRead, 6);
-    for (int i = 0; i < 10; i++){
+    pruebaStorage.readPage(bufferRead, 6);
+    for (int i = 0; i < 10; i++) {
         cout << "bufferRead[" << i << "] = " << hex << bufferRead[i] << dec << endl;
     }
 
-    // Accedemos a los primeros 256 bits
-    for(int i = 0; i < 256; i++)
-        cout << "prueaVector[" << i+1 << "] = " << hex << pruebaVector[i+1] << dec << endl;
+    delete[] buffer;
+    delete[] bufferRead;
 
-    // Accedemos a 10 bits randoms en el rango de 0 a 10*pageSize*8
-    for(int i = 0; i < 10; i++){
-        uint64_t accessBit = rand()% (10*10*sizeof(uint64_t)*8);
-        cout << "pruebaVector[" << accessBit << "] = " << pruebaVector[accessBit] << endl;
+
+}
+
+void test_ExternalBitVector(){
+    // Objetos a probar (solo access en bitvector)
+    Storage<uint64_t> vectorStorage("Testing.bin", 10);
+    ExternalBitvector<uint64_t> pruebaVector(vectorStorage);
+
+    pruebaVector.create(1000);
+    for (int i = 0; i < 1000; i += 4) {
+        uint64_t pos=i;
+        pruebaVector.bitSet(pos);
     }
-
-    return 0;
+    for (int i = 0; i < 1000; i++) {
+        cout << pruebaVector[i];
+        if ((i % 99) == 0) {
+            cout << endl;
+        }
+    }
+}
+int main() {
+    test_Storage();
+    test_ExternalBitVector();
 }
