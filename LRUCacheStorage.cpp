@@ -2,99 +2,91 @@
 // Created by ThinkBook14G2 on 08-07-2022.
 //
 
+
 #include "LRUCacheStorage.h"
 
 template<typename uint_t>
-void LRUCacheStorage<uint_t>::appendPage(const uint_t *buffer) {
-    int id=Storage<uint_t>::getPages();
-    uint_t *page;
-    bool isChanged;
+void LRUCacheStorage<uint_t>::appendPage(const Buffer<uint_t> buffer) {
+    int idBuf = Storage<uint_t>::getPages();
     Storage<uint_t>::appendPage(buffer);
-
-    if (pageList.size() == csize) {
-        // delete least recently used element
-        tie(id, page,isChanged) = pageList.back();
-        // Pops the last element
-        pageList.pop_back();
-        // Erase the last
-        map.erase(id);
-        if(isChanged) Storage<uint_t>::updatePage(page, id);
-        delete page;
-    }
-    pageList.push_front(make_tuple(id, buffer, false));
-    map[id] = pageList.begin();
-
-
+    addNewCacheEntry(buffer, idBuf);
 }
 
 template<typename uint_t>
-void LRUCacheStorage<uint_t>::updatePage(const uint_t *buffer, uint_t p) {
-    int id;
-    uint_t *page;
-    bool isChanged;
-    // not present in cache
-    if (map.find(p) == map.end()) {
-        // cache is full
-        if (pageList.size() == csize) {
-            // delete least recently used element
-            tie(id, page,isChanged) = pageList.back();
-            // Pops the last element
-            pageList.pop_back();
-            // Erase the last
-            map.erase(id);
-            //la actualización de las páginas ocurren cuando salen del caché solamente.
-            if(isChanged) Storage<uint_t>::updatePage(page, id);
-            delete page;
-        }
-        //actualizar el caché
-        pageList.push_front(make_tuple(p, buffer, true));
-        map[p] = pageList.begin();
+void LRUCacheStorage<uint_t>::updatePage(Buffer<uint_t> buffer, uint_t p) {
+    buffer.setUpdated();
+    if (cacheContains(p)) {
+        updateAndMoveToFront(buffer, p);
     } else {
-        // present in cache
-        tie(id, page) = (*map[p]);
-        pageList.erase(map[p]);
-        pageList.push_front(make_tuple(p, buffer, false));
-        // update reference
-        map[p] = pageList.begin();
-        if(buffer!=page){
-            delete(page);
-        }
+        addNewCacheEntry(buffer, p);
     }
-
 }
 
+
 template<typename uint_t>
-void LRUCacheStorage<uint_t>::readPage(uint_t *&buffer, uint_t p) {
-    int id;
-    uint_t *page;
-    bool isChanged;
-    // not present in cache
-    if (map.find(p) == map.end()) {
-        // cache is full
-        if (pageList.size() == csize) {
-            // delete least recently used element
-            tie(id, page,isChanged) = pageList.back();
-            // Pops the last element
-            pageList.pop_back();
-            // Erase the last
-            map.erase(id);
-            if(isChanged) Storage<uint_t>::updatePage(page, id);
-            delete page;
-        }
-        //page = new uint_t[this->getD()];
+Buffer<uint_t> LRUCacheStorage<uint_t>::readPage(uint_t p) {
+    if (cacheContains(p)) {
+        return moveToFront(p);
+    } else {
         //ir a buscar página al disco
-        Storage<uint_t>::readPage(buffer, p);
-        pageList.push_front(make_tuple(p, buffer, false));
-        map[p] = pageList.begin();
-    } else {
-        // present in cache
-        tie(id, page) = (*map[p]);
-        pageList.erase(map[p]);
-        pageList.push_front(make_tuple(p, page, false));
-        // update reference
-        map[p] = pageList.begin();
-        delete(buffer);
-        buffer=page;
+        Buffer<uint_t> out(Storage<uint_t>::getD());
+        out.createBlock();
+        out = Storage<uint_t>::readPage(p, 0);
+        addNewCacheEntry(out, p);
+        return out;
     }
 }
 
+template<typename uint_t>
+inline Buffer<uint_t> LRUCacheStorage<uint_t>::moveToFront(uint_t p) const {
+    // assert(p is present in cache)
+    // then move to front and return buffer.
+    Buffer<uint_t> page(Storage<uint_t>::getD());
+    int id;
+    auto iter = map[p];
+
+
+    tie(id, page) = (*iter);
+    pageList.erase(iter);
+    pageList.push_front(make_tuple(p, page));
+    // update reference
+    map[p] = pageList.begin();
+    return page;
+}
+
+template<typename uint_t>
+inline void LRUCacheStorage<uint_t>::addNewCacheEntry(const Buffer<uint_t> &buffer, uint_t p) {
+    if (cacheIsFull()) deleteLRU();
+    pageList.push_front(make_tuple(p, buffer));
+    map[p] = pageList.begin();
+}
+
+template<typename uint_t>
+inline void LRUCacheStorage<uint_t>::deleteLRU() {
+    // delete least recently used element
+    int id_last;
+    Buffer<uint_t> last(Storage<uint_t>::getD());
+    tie(id_last, last) = pageList.back();
+    // Pops the last element
+    pageList.pop_back();
+    // Erase the last
+    map.erase(id_last);
+    //if changed, update on disk!
+    if (last.isUpdated()) Storage<uint_t>::updatePage(last, id_last);
+}
+
+template<typename uint_t>
+inline void LRUCacheStorage<uint_t>::updateAndMoveToFront(const Buffer<uint_t> &buffer, uint_t p) {// present in cache
+    pageList.erase(map[p]);
+    pageList.push_front(make_tuple(p, buffer));
+    // update reference
+    map[p] = pageList.begin();
+}
+
+template<typename uint_t>
+inline bool LRUCacheStorage<uint_t>::cacheIsFull() {
+    return this->pageList.size() == this->cacheSize;
+}
+
+template<typename uint_t>
+inline bool LRUCacheStorage<uint_t>::cacheContains(uint_t p) { return map.find(p) != map.end(); }

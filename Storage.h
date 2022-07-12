@@ -10,6 +10,8 @@
 #include <filesystem>
 #include <cassert>
 #include <map>
+#include "Buffer.h"
+
 using namespace std;
 
 namespace fs = std::filesystem;
@@ -32,76 +34,90 @@ public:
 
     bool create();
 
-    virtual void appendPage(const uint_t buffer[]);
+    void close();
 
-    virtual void updatePage(const uint_t buffer[], uint_t p);
 
-    virtual void readPage(uint_t *&buffer, uint_t p);
+    virtual void appendPage(Buffer<uint_t> buffer);
 
-    int getPages(){
+    virtual void updatePage(Buffer<uint_t> buffer, uint_t p);
+
+    virtual Buffer<uint_t> readPage(uint_t p);
+
+    int getPages() {
         return pages;
     }
+
     //D-1 word of bits + 1 D for rank
-    uint_t bitsPerPage(){
-        return  (D-1)*sizeof(uint_t);
-    }
-    uint_t pageSize(){
-        return D*sizeof(uint_t);
+    //bits available
+    uint_t bitsPerPage() {
+        return (D - 1) * bitsPerWord();
     }
 
-    uint_t size(){
-        return pageSize()*pages;
+    inline int bitsPerWord(){
+        return sizeof(uint_t) * 8;
+    }
+    uint_t pageSize() {
+        return D * sizeof(uint_t);
     }
 
-    void setMeta(string key, string value){
-        metaData[key]=value;
+    uint_t size() {
+        return pageSize() * pages;
     }
 
-    string getMeta(string key){
+    void setMeta(string key, string value) {
+        metaData[key] = value;
+    }
+
+    string getMeta(string key) {
         return metaData[key];
     }
 
     ~Storage();
+
 private:
     void readMetaData();
+
     void saveMetaData();
 };
 
 template<typename w>
 Storage<w>::~Storage() {
-    file.close();
+    close();
     saveMetaData();
 }
 
 template<typename uint_t>
-void Storage<uint_t>::appendPage(const uint_t buffer[]) {
+void Storage<uint_t>::appendPage(Buffer<uint_t> buffer) {
     assert (file.is_open());
     file.seekp(0, std::ios::end);
-    file.write(reinterpret_cast<const char*> (buffer), pageSize());
+    file.write(reinterpret_cast<const char *> (buffer.data()), pageSize());
     pages++;
 }
 
 template<typename uint_t>
-void Storage<uint_t>::updatePage(const uint_t buffer[], uint_t p) {
+void Storage<uint_t>::updatePage(Buffer<uint_t> buffer, uint_t p) {
     assert (p < pages);
     assert(file.is_open());
     file.seekp(p * pageSize());
-    file.write(reinterpret_cast<const char*> (buffer), pageSize());
-    pages++;
+    file.write(reinterpret_cast<const char *> (buffer.data()), pageSize());
+    buffer.setUpdated();
 }
 
 
 template<typename uint_t>
-void Storage<uint_t>::readPage(uint_t *&buffer, uint_t p) {
+Buffer<uint_t> Storage<uint_t>::readPage(uint_t p) {
     assert (p < pages);
     assert(file.is_open());
+    Buffer<uint_t> buffer(Storage<uint_t>::getD());
+    buffer.createBlock();
     file.seekg(p * pageSize());
-    file.read(reinterpret_cast<char*> (buffer), pageSize());
+    file.read(reinterpret_cast<char *> (buffer.data()), pageSize());
+    return buffer;
 }
 
 template<typename uint_t>
 bool Storage<uint_t>::open() {
-    if(!file.is_open()) {
+    if (!file.is_open()) {
         file.open(fileName, std::ios::in | std::ios::out | std::ios::binary);
         readMetaData();
     }
@@ -110,15 +126,16 @@ bool Storage<uint_t>::open() {
 
 template<typename uint_t>
 Storage<uint_t>::Storage(const std::string fileName, int D):fileName(fileName), D(D) {
-    pages=0;
-    metaData["d"]=to_string(D);
+    pages = 0;
+    metaData["D"] = to_string(D);
 }
 
+//este crear, solo crea si no existe. Sino no hace cambios
 template<typename uint_t>
 bool Storage<uint_t>::create() {
-    if(!(fs::exists(fileName)) ){
+    if (!(fs::exists(fileName))) {
         std::ofstream createFile(fileName);
-        assert(createFile.is_open()); // cambiar por excepción
+        //assert(createFile.is_open()); // cambiar por excepción
         createFile.close();
         saveMetaData();
     }
@@ -127,24 +144,24 @@ bool Storage<uint_t>::create() {
 
 template<typename uint_t>
 void Storage<uint_t>::readMetaData() {
-    string name=fileName;
-    name+="_METADATA";
+    string name = fileName;
+    name += "_METADATA";
     ifstream metafile(name.data());
     string key, value;
-    while(metafile>>key>>value){
-        metaData[key]=value;
+    while (metafile >> key >> value) {
+        metaData[key] = value;
     }
     metafile.close();
 }
 
 template<typename uint_t>
 void Storage<uint_t>::saveMetaData() {
-    string name=fileName;
-    name+="_METADATA";
+    string name = fileName;
+    name += "_METADATA";
     ofstream metafile(name.data());
     string key, value;
-    for(auto item:metaData){
-        metafile<<item.first<<" "<<item.second<<endl;
+    for (auto item: metaData) {
+        metafile << item.first << " " << item.second << endl;
     }
     metafile.close();
 }
@@ -152,6 +169,13 @@ void Storage<uint_t>::saveMetaData() {
 template<typename uint_t>
 int Storage<uint_t>::getD() const {
     return D;
+}
+
+template<typename uint_t>
+void Storage<uint_t>::close() {
+    if (file.is_open()) {
+        file.close();
+    }
 }
 
 #endif //BITVECTOR_STORAGE_H
