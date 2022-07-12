@@ -13,19 +13,32 @@ template<typename uint_t>
 class LRUCacheStorage : Storage<uint_t> {
 private:
     // store page of cache
-    list<tuple<int, uint_t *>> pageList;
+    list<Buffer<uint_t>> pageList;
     // store references of page in pageList of key in cache
-    unordered_map<int, typename list<tuple<int, uint_t *>>::iterator> map;
-    int csize; // maximum capacity of cache
+    unordered_map<int, typename list<Buffer<uint_t>>::iterator> map;
+    int cacheSize; // maximum capacity of cache
 
 public:
-    LRUCacheStorage(const string &fileName, int d, int csize) : Storage<uint_t>(fileName, d), csize(csize) {}
+    LRUCacheStorage(const string &fileName, int d, int csize) : Storage<uint_t>(fileName, d), cacheSize(csize) {}
 
-    void appendPage(const uint_t *buffer) override ;
+    void appendPage(const Buffer<uint_t> buffer) override;
 
-    void updatePage(const uint_t *buffer, uint_t p) override ;
+    void updatePage(Buffer<uint_t> buffer, uint_t p) override;
 
-    void readPage(uint_t *&buffer, uint_t p) override ;
+    Buffer<uint_t> readPage(uint_t p) override;
+
+private:
+    inline void deleteLRU();
+
+    inline void updateAndMoveToFront(const Buffer<uint_t> &buffer, uint_t p);
+
+    inline void addNewCacheEntry(const Buffer<uint_t> &buffer, uint_t p);
+
+    inline bool cacheContains(uint_t p);
+
+    inline bool cacheIsFull();
+
+    inline Buffer<uint_t> moveToFront(uint_t p) const;
 };
 
 

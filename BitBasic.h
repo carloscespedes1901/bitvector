@@ -15,7 +15,7 @@ namespace BitBasic {
 //indexa los bits de izquierda a derecha hasta el infinito...
     template<typename uint_t>
     inline bool access(const uint_t *e, const uint_t p, const int W) {
-        return 0 != ((e[p / W] & 1 << (W - 1 - (p % W))));
+        return 0 != ((e[p / W] & (uint_t)1 << (W - 1 - (p % W))));
     }
 
     template<typename uint_t>
