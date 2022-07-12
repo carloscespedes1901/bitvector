@@ -16,6 +16,8 @@ private:
     shared_ptr<uint_t[]> block= nullptr;
     uint_t D=8;
     bool updated=false;
+    uint_t id=-1;
+
 public:
     explicit Buffer(uint_t d) : D(d), block(nullptr){ }
 
@@ -32,11 +34,13 @@ public:
         block=other.block;
         D=other.D;
         updated=other.updated;
+        id=other.id;
     }
     uint_t& operator=(const uint_t& other){
         block=other.block;
         D=other.D;
         updated=other.updated;
+        id=other.id;
     }
 
     uint_t& operator[](uint_t b) const{
@@ -46,7 +50,7 @@ public:
     bool operator==(const Buffer &rhs) const {
         return block == rhs.block &&
                D == rhs.D &&
-               updated == rhs.updated;
+               updated == rhs.updated && id=rhs.id;
     }
 
     bool operator!=(const Buffer &rhs) const {
@@ -61,6 +65,7 @@ public:
         return D;
     }
 
+
     bool isUpdated(){
         return updated;
     }
@@ -68,6 +73,15 @@ public:
     void setUpdated(){
         updated=true;
     }
+
+    uint_t getId() const {
+        return id;
+    }
+
+    void setId(uint_t id) {
+        Buffer::id = id;
+    }
+
 };
 
 

@@ -5,8 +5,8 @@
 
 #ifndef PRUEBASC___BITBASIC_H
 #define PRUEBASC___BITBASIC_H
-#include <bits/stdc++.h>
 #include <bit>
+#include <bits/stdc++.h>
 using namespace std;
 namespace BitBasic {
 //indexa los bits de izquierda a derecha hasta el infinito...

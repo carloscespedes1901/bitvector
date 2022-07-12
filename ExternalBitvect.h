@@ -5,10 +5,10 @@
 #ifndef PRUEBASC___EXTERNALBITVECT_H
 #define PRUEBASC___EXTERNALBITVECT_H
 
-#include <filesystem>
-#include "Storage.h"
 #include <string>
+#include <filesystem>
 #include "BitBasic.h"
+#include "Storage.h"
 
 using namespace std;
 
@@ -159,7 +159,7 @@ template<typename uint_t>
 void ExternalBitvector<uint_t>::buildRank() {
     uint_t paginas = theStorage.getPages();
     uint_t bitsPerPage = theStorage.bitsPerPage();
-    uint_t bitsPerWord = 8 * sizeof(uint_t);
+    uint_t bitsPerWord = theStorage.bitsPerWord();
     Buffer<uint_t> buffer(theStorage.getD());
     uint_t prevRank = 0;
     uint_t ori = 0;

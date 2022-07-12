@@ -3,4 +3,11 @@ project(pruebasC__)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(pruebasC__ main.cpp BitBasic.h LRUCacheStorage.cpp LRUCacheStorage.h Buffer.h)
+add_executable(pruebasC__ main.cpp
+        BitBasic.h
+        Buffer.h
+        Storage.h
+        LRUCacheStorage.h
+        ExternalBitvect.h
+        )
+
