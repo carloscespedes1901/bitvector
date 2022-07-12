@@ -1,4 +1,6 @@
 #include <iostream>
+#include "Storage.h"
+#include "LRUCacheStorage.h"
 #include "ExternalBitvect.h"
 
 using namespace std;
@@ -135,12 +137,59 @@ void test_bits() {
     cout << "rank(13)= " << BitBasic::Rank(&bits, i, 64) << "(esperado 4) " << endl;
 }
 
-void test_buffer() {
+void test_ExternalBitVectorWithLRU() {
+    // Objetos a probar (solo access en bitvector)
+    //no me gusta que el objeto quede libre por fuera
+    //Storage<uint64_t> vectorStorage("Testing.bin", 10);
+    LRUCacheStorage<uint64_t> vectorStorage("Testing.bin", 10,20);
+    ExternalBitvector<uint64_t> pruebaVector(vectorStorage);
+
+    pruebaVector.create(1000);
+    cout << "bits en 1: 512-515" << endl;
+    pruebaVector.bitSet(512);
+    pruebaVector.bitSet(513);
+    pruebaVector.bitSet(514);
+    pruebaVector.bitSet(515);
+    pruebaVector.print(100);
+    cout
+            << "Print es basado en acces. La siguiente prueba evalua access individual de los bits en 1 512-515 (se espera 1 1 1 1 )"
+            << endl;
+    cout << pruebaVector.access(512) << " ";
+    cout << pruebaVector.access(513) << " ";
+    cout << pruebaVector.access(514) << " ";
+    cout << pruebaVector.access(515) << " ";
+    cout << endl;
+    cout << "se limpian los 4 bits anteriores y se revisan con rank se espera (0 0 0 0)" << endl;
+    pruebaVector.bitClean(513);
+    pruebaVector.bitClean(515);
+    pruebaVector.bitClean(512);
+    pruebaVector.bitClean(514);
+    cout << pruebaVector.access(512) << " ";
+    cout << pruebaVector.access(513) << " ";
+    cout << pruebaVector.access(514) << " ";
+    cout << pruebaVector.access(515) << " ";
+    cout << endl;
+
+    cout << "poniendo en 1 cada 4 bits desde el 1°" << endl;
+    for (uint64_t i = 0; i < pruebaVector.getLength(); i += 4) {
+        pruebaVector.bitSet(i);
+    }
+    uint64_t pos = 0;
+    pruebaVector.print();
+
+    cout << "prueba de build rank y rank (se espera 250)" << endl;
+    pruebaVector.buildRank();
+    cout<<pruebaVector.rank((uint64_t)999)<<endl;
 
 }
 
 int main() {
+
     test_bits();
+
     test_Storage();
+
     test_ExternalBitVector();
+
+    test_ExternalBitVectorWithLRU();
 }

@@ -32,7 +32,7 @@ public:
 
     bool open();
 
-    bool create();
+    bool create(bool deleteIfExists=true);
 
     void close();
 
@@ -49,18 +49,18 @@ public:
 
     //D-1 word of bits + 1 D for rank
     //bits available
-    uint_t bitsPerPage() {
+    inline uint_t bitsPerPage() {
         return (D - 1) * bitsPerWord();
     }
 
     inline int bitsPerWord(){
         return sizeof(uint_t) * 8;
     }
-    uint_t pageSize() {
+    inline uint_t pageSize() {
         return D * sizeof(uint_t);
     }
 
-    uint_t size() {
+    inline uint_t size() {
         return pageSize() * pages;
     }
 
@@ -72,7 +72,7 @@ public:
         return metaData[key];
     }
 
-    ~Storage();
+   virtual ~Storage();
 
 private:
     void readMetaData();
@@ -91,6 +91,7 @@ void Storage<uint_t>::appendPage(Buffer<uint_t> buffer) {
     assert (file.is_open());
     file.seekp(0, std::ios::end);
     file.write(reinterpret_cast<const char *> (buffer.data()), pageSize());
+    buffer.setId(pages);
     pages++;
 }
 
@@ -100,6 +101,7 @@ void Storage<uint_t>::updatePage(Buffer<uint_t> buffer, uint_t p) {
     assert(file.is_open());
     file.seekp(p * pageSize());
     file.write(reinterpret_cast<const char *> (buffer.data()), pageSize());
+    buffer.setId(p);
     buffer.setUpdated();
 }
 
@@ -112,6 +114,7 @@ Buffer<uint_t> Storage<uint_t>::readPage(uint_t p) {
     buffer.createBlock();
     file.seekg(p * pageSize());
     file.read(reinterpret_cast<char *> (buffer.data()), pageSize());
+    buffer.setId(p);
     return buffer;
 }
 
@@ -130,12 +133,12 @@ Storage<uint_t>::Storage(const std::string fileName, int D):fileName(fileName), 
     metaData["D"] = to_string(D);
 }
 
-//este crear, solo crea si no existe. Sino no hace cambios
+
 template<typename uint_t>
-bool Storage<uint_t>::create() {
-    if (!(fs::exists(fileName))) {
+bool Storage<uint_t>::create(bool deleteIfExists) {
+    if (!(fs::exists(fileName))||deleteIfExists) {
         std::ofstream createFile(fileName);
-        //assert(createFile.is_open()); // cambiar por excepción
+        assert(createFile.is_open()); // cambiar por excepción
         createFile.close();
         saveMetaData();
     }
