@@ -1,13 +1,10 @@
 cmake_minimum_required(VERSION 3.21.1)
-project(pruebasC__)
+project(Bitvector)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(pruebasC__ main.cpp
-        BitBasic.h
-        Buffer.h
-        Storage.h
-        LRUCacheStorage.h
-        ExternalBitvect.h
-        )
+include_directories(src)
+
+add_subdirectory(src)
+add_subdirectory(test)
 
