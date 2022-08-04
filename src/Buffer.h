@@ -17,6 +17,7 @@ private:
     uint_t D=8;
     bool updated=false;
     uint_t id=-1;
+    uint_t freq=0;
 
 public:
     explicit Buffer(uint_t d) : D(d), block(nullptr){ }
@@ -93,6 +94,15 @@ public:
         Buffer::id = id;
     }
 
+    uint_t getFrec() {
+        return freq;
+    }
+    void increaceFrec(){
+        freq++;
+    }
+    void startCountFrec(){
+        freq=1;
+    }
 };
 
 
