@@ -17,6 +17,7 @@ template<typename uint_t>
 class ExternalBitvector {
 private:
     unsigned long long length = 0;//in bits
+    unsigned long long ones=0; //in bits
     Storage<uint_t> &theStorage;
 public:
     ExternalBitvector(Storage<uint_t> &theStorage);
@@ -24,9 +25,10 @@ public:
     ~ExternalBitvector();
 
     void create(const unsigned long long len);
-
+    void create();
     void open();
-
+    //buffer to append, n <= bitPerBuffer bits to append in bitvector.
+    void appendPage(Buffer<uint_t> buffer, uint_t n);
     void resize(const uint_t new_length);
 
     int operator[](const uint_t b) const;
@@ -55,16 +57,22 @@ private:
 
 template<typename uint_t>
 ExternalBitvector<uint_t>::ExternalBitvector(Storage<uint_t> &storage):theStorage(storage) {
-    theStorage.setMeta("LENGTH", to_string(length));
+    length=0;
+    ones=0;
+    theStorage.setMeta("EXTERNAL_BIT_VECTOR_LENGTH", to_string(length));
+    theStorage.setMeta("EXTERNAL_BIT_VECTOR_ONES", to_string(ones));
 }
 
 template<typename uint_t>
 ExternalBitvector<uint_t>::~ExternalBitvector() {
+    theStorage.setMeta("EXTERNAL_BIT_VECTOR_LENGTH", to_string(length));
+    theStorage.setMeta("EXTERNAL_BIT_VECTOR_ONES", to_string(ones));
     theStorage.close();
 }
 
 template<typename uint_t>
 void ExternalBitvector<uint_t>::create(const unsigned long long len) {
+    assert(len>0);
     theStorage.create();
     open();
     resize(len);
@@ -80,12 +88,15 @@ void ExternalBitvector<uint_t>::apendBlank(const uint_t N) {
     for (uint_t i = 0; i < N; i++) {
         theStorage.appendPage(buffer);
     }
+    length+=N;
+    theStorage.setMeta("EXTERNAL_BIT_VECTOR_LENGTH", to_string(length));
 }
 
 template<typename uint_t>
 void ExternalBitvector<uint_t>::open() {
     theStorage.open();
-    length = stoull(theStorage.getMeta("LENGTH"));
+    length = stoull(theStorage.getMeta("EXTERNAL_BIT_VECTOR_LENGTH"));
+    ones = stoull(theStorage.getMeta("EXTERNAL_BIT_VECTOR_ONES"));
 }
 
 template<typename uint_t>
@@ -97,7 +108,7 @@ void ExternalBitvector<uint_t>::resize(uint_t new_length) {
         uint_t pageSize = theStorage.pageSize() * 8;//page size in bits.
         uint_t pageNumber = (new_length - length + pageSize - 1) / pageSize;
         apendBlank(pageNumber);
-        theStorage.setMeta("LENGTH", to_string(length));
+
     } else {
         static_assert(true, "Falta implementar la eliminación de páginas cuando 'resize' achica el bitvector");
     }
@@ -154,6 +165,20 @@ uint_t ExternalBitvector<uint_t>::rank(const uint_t b) const {
     uint_t prevRank = buffer[theStorage.getD() - 1];
     return prevRank + BitBasic::Rank(buffer.data(), pos, theStorage.bitsPerWord());
 }
+template<typename uint_t>
+void ExternalBitvector<uint_t>::appendPage(Buffer<uint_t> buffer, uint_t n) {
+    //append buffer
+    uint_t bitsPerPage = theStorage.bitsPerPage();
+    uint_t bitsPerWord = theStorage.bitsPerWord();
+    assert(n<=bitsPerPage);
+    buffer[theStorage.getD() - 1] = ones;
+    theStorage.appendPage(buffer);
+    ones+=BitBasic::Rank(buffer.data(), n - 1, bitsPerWord);
+    length+=n;
+    //quizas solo debería guardarse en el storage y rescatarlo con funciones getter y setter
+    theStorage.setMeta("EXTERNAL_BIT_VECTOR_LENGTH", to_string(length));
+    theStorage.setMeta("EXTERNAL_BIT_VECTOR_ONES", to_string(ones));
+}
 
 template<typename uint_t>
 void ExternalBitvector<uint_t>::buildRank() {
@@ -169,12 +194,15 @@ void ExternalBitvector<uint_t>::buildRank() {
         prevRank += BitBasic::Rank(buffer.data(), bitsPerPage - 1, bitsPerWord);
         theStorage.updatePage(buffer, i);
     }
+    ones=prevRank;
+    theStorage.setMeta("EXTERNAL_BIT_VECTOR_ONES", to_string(ones));
 }
 
 template<typename uint_t>
 void ExternalBitvector<uint_t>::print(int with) {
     //print ExternalBitVector
-    cout << "(LENGTH = " << length << ")" << endl;
+    cout << "(EXTERNAL_BIT_VECTOR_LENGTH " << length << ")" << endl;
+    cout << "(EXTERNAL_BIT_VECTOR_ONES " << ones <<  ") only if builrank() was run!" << endl;
     for (int i = 4; i <= with; i += 4) {
         cout << fixed << setw(4) << setfill(' ') << std::right << i << " ";
     }
@@ -187,6 +215,14 @@ void ExternalBitvector<uint_t>::print(int with) {
         }
     }
     cout << endl;
+}
+
+template<typename uint_t>
+void ExternalBitvector<uint_t>::create() {
+    theStorage.create();
+    open();
+    length=0;
+    ones=0;
 }
 
 

@@ -28,6 +28,8 @@ public:
 
     virtual Buffer<uint_t> readPage(uint_t p) override;
 
+    void close() override;
+
 private:
     inline void deleteLRU();
 
@@ -95,7 +97,6 @@ inline Buffer<uint_t> LRUCacheStorage<uint_t>::moveToFront(uint_t p) {
 
 template<typename uint_t>
 inline void LRUCacheStorage<uint_t>::addNewCacheEntry(Buffer<uint_t> &buffer, uint_t p) {
-    buffer.setId(p);
     if (cacheIsFull()) deleteLRU();
     pageList.push_front(buffer);
     map[p] = pageList.begin();
@@ -116,7 +117,6 @@ inline void LRUCacheStorage<uint_t>::deleteLRU() {
 
 template<typename uint_t>
 inline void LRUCacheStorage<uint_t>::updateAndMoveToFront(Buffer<uint_t> &buffer, uint_t p) {// present in cache
-    buffer.setId(p);
     pageList.erase(map[p]);
     pageList.push_front(buffer);
     // update reference
@@ -130,6 +130,17 @@ inline bool LRUCacheStorage<uint_t>::cacheIsFull() {
 
 template<typename uint_t>
 inline bool LRUCacheStorage<uint_t>::cacheContains(uint_t p) { return map.find(p) != map.end(); }
+
+template<typename uint_t>
+void LRUCacheStorage<uint_t>::close() {
+    //save the cache changed block
+    for (Buffer<uint_t> &page: pageList) {
+        if (page.isUpdated()) Storage<uint_t>::updatePage(page, page.getId());
+    }
+    pageList.clear();
+    map.clear();
+    Storage<uint_t>::close();
+}
 
 
 #endif //PRUEBASC___LRUCACHESTORAGE_H

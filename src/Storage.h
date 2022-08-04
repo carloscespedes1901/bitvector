@@ -34,7 +34,7 @@ public:
 
     bool create(bool deleteIfExists=true);
 
-    void close();
+    virtual void close();
 
 
     virtual void appendPage(Buffer<uint_t> buffer);
@@ -122,8 +122,8 @@ template<typename uint_t>
 bool Storage<uint_t>::open() {
     if (!file.is_open()) {
         file.open(fileName, std::ios::in | std::ios::out | std::ios::binary);
-        readMetaData();
     }
+    readMetaData();
     return file.is_open();
 }
 
@@ -140,8 +140,8 @@ bool Storage<uint_t>::create(bool deleteIfExists) {
         std::ofstream createFile(fileName);
         assert(createFile.is_open()); // cambiar por excepción
         createFile.close();
-        saveMetaData();
     }
+    saveMetaData();
     return fs::exists(fileName);
 }
 
@@ -178,6 +178,7 @@ template<typename uint_t>
 void Storage<uint_t>::close() {
     if (file.is_open()) {
         file.close();
+        saveMetaData();
     }
 }
 
