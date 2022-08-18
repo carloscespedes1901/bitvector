@@ -10,9 +10,9 @@ using namespace std;
 void test_Storage() {
     cout << "Size of uint64_t = " << sizeof(uint64_t) << endl;
 
-    Buffer<uint64_t> buffer(10);
+    Page<uint64_t> buffer(10);
     buffer.createBlock();
-    Buffer<uint64_t> bufferRead(10);
+    Page<uint64_t> bufferRead(10);
     bufferRead.createBlock(true);
     //LLenamos un buffer con basura
     for (int i = 0; i < 10; i++) {

@@ -28,7 +28,7 @@ public:
     void create();
     void open();
     //buffer to append, n <= bitPerBuffer bits to append in bitvector.
-    void appendPage(Buffer<uint_t> buffer, uint_t n);
+    void appendPage(Page<uint_t> buffer, uint_t n);
     void resize(const uint_t new_length);
 
     int operator[](const uint_t b) const;
@@ -52,7 +52,7 @@ public:
 private:
     void apendBlank(uint_t N);
 
-    inline tuple<Buffer<uint_t>, uint_t, uint_t> getBufferPageAndPos(const uint_t b) const;
+    inline tuple<Page<uint_t>, uint_t, uint_t> getBufferPageAndPos(const uint_t b) const;
 };
 
 template<typename uint_t>
@@ -83,7 +83,7 @@ void ExternalBitvector<uint_t>::create(const unsigned long long len) {
 template<typename uint_t>
 void ExternalBitvector<uint_t>::apendBlank(const uint_t N) {
     uint_t pageSize = theStorage.pageSize() * 8;//page size in bits.
-    Buffer<uint_t> buffer(theStorage.getD());
+    Page<uint_t> buffer(theStorage.getD());
     buffer.createBlock(true);//true para crear el buffer limpio
     for (uint_t i = 0; i < N; i++) {
         theStorage.appendPage(buffer);
@@ -117,10 +117,10 @@ void ExternalBitvector<uint_t>::resize(uint_t new_length) {
 
 //RETURN buffer, page number and pos in buffer
 template<typename uint_t>
-inline tuple<Buffer<uint_t>, uint_t, uint_t> ExternalBitvector<uint_t>::getBufferPageAndPos(const uint_t b) const {
+inline tuple<Page<uint_t>, uint_t, uint_t> ExternalBitvector<uint_t>::getBufferPageAndPos(const uint_t b) const {
     assert(b >= 0 && b < length);
     uint_t bitsPerPage = theStorage.bitsPerPage();
-    Buffer<uint_t> buffer(theStorage.getD());
+    Page<uint_t> buffer(theStorage.getD());
     uint_t page = b / bitsPerPage;
     uint_t pos = b % bitsPerPage;
     buffer = theStorage.readPage(page);
@@ -129,7 +129,7 @@ inline tuple<Buffer<uint_t>, uint_t, uint_t> ExternalBitvector<uint_t>::getBuffe
 
 template<typename uint_t>
 int ExternalBitvector<uint_t>::access(const uint_t b) const {
-    Buffer<uint_t> buffer(theStorage.getD()); uint_t page,pos;
+    Page<uint_t> buffer(theStorage.getD()); uint_t page,pos;
     tie(buffer, page,pos)= getBufferPageAndPos(b);
     return (BitBasic::access(buffer.data(), pos, theStorage.bitsPerWord()))?1:0;
 }
@@ -141,7 +141,7 @@ int ExternalBitvector<uint_t>::operator[](const uint_t b) const {
 
 template<typename uint_t>
 void ExternalBitvector<uint_t>::bitSet(const uint_t b) {
-    Buffer<uint_t> buffer(theStorage.getD()); uint_t page,pos;
+    Page<uint_t> buffer(theStorage.getD()); uint_t page,pos;
     tie(buffer, page,pos)= getBufferPageAndPos(b);
 
     BitBasic::BitSet(buffer.data(), pos, theStorage.bitsPerWord());
@@ -150,7 +150,7 @@ void ExternalBitvector<uint_t>::bitSet(const uint_t b) {
 
 template<typename uint_t>
 void ExternalBitvector<uint_t>::bitClean(const uint_t b) {
-    Buffer<uint_t> buffer(theStorage.getD()); uint_t page,pos;
+    Page<uint_t> buffer(theStorage.getD()); uint_t page,pos;
     tie(buffer, page,pos)= getBufferPageAndPos(b);
 
     BitBasic::BitClear(buffer.data(), pos, theStorage.bitsPerWord());
@@ -159,14 +159,14 @@ void ExternalBitvector<uint_t>::bitClean(const uint_t b) {
 
 template<typename uint_t>
 uint_t ExternalBitvector<uint_t>::rank(const uint_t b) const {
-    Buffer<uint_t> buffer(theStorage.getD()); uint_t page,pos;
+    Page<uint_t> buffer(theStorage.getD()); uint_t page,pos;
     tie(buffer, page,pos)= getBufferPageAndPos(b);
 
     uint_t prevRank = buffer[theStorage.getD() - 1];
     return prevRank + BitBasic::Rank(buffer.data(), pos, theStorage.bitsPerWord());
 }
 template<typename uint_t>
-void ExternalBitvector<uint_t>::appendPage(Buffer<uint_t> buffer, uint_t n) {
+void ExternalBitvector<uint_t>::appendPage(Page<uint_t> buffer, uint_t n) {
     //append buffer
     uint_t bitsPerPage = theStorage.bitsPerPage();
     uint_t bitsPerWord = theStorage.bitsPerWord();
@@ -185,7 +185,7 @@ void ExternalBitvector<uint_t>::buildRank() {
     uint_t paginas = theStorage.getPages();
     uint_t bitsPerPage = theStorage.bitsPerPage();
     uint_t bitsPerWord = theStorage.bitsPerWord();
-    Buffer<uint_t> buffer(theStorage.getD());
+    Page<uint_t> buffer(theStorage.getD());
     uint_t prevRank = 0;
     uint_t ori = 0;
     for (uint_t i = 0; i < paginas; i++) {

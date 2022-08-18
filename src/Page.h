@@ -11,7 +11,7 @@
 using namespace std;
 
 template<typename uint_t>
-class Buffer {
+class Page {
 private:
     shared_ptr<uint_t[]> block= nullptr;
     uint_t D=8;
@@ -20,7 +20,7 @@ private:
     uint_t freq=0;
 
 public:
-    explicit Buffer(uint_t d) : D(d), block(nullptr){ }
+    explicit Page(uint_t d) : D(d), block(nullptr){ }
 
     void createBlock(bool blank=false){
         if(blank){
@@ -41,7 +41,7 @@ public:
         bitArray[i]|=mask << bitsPerWord-4-(4*j);
         cout<<"unt_t:"<< i<<" chunk:"<<j<<" "<<endl;
     }
-    Buffer(const Buffer &other){
+    Page(const Page &other){
         //share ptr, not copy
         block=other.block;
         D=other.D;
@@ -59,13 +59,13 @@ public:
         return block[b];
     }
 
-    bool operator==(const Buffer &rhs) const {
+    bool operator==(const Page &rhs) const {
         return block == rhs.block &&
                D == rhs.D &&
                updated == rhs.updated && id=rhs.id;
     }
 
-    bool operator!=(const Buffer &rhs) const {
+    bool operator!=(const Page &rhs) const {
         return !(rhs == *this);
     }
 
@@ -91,7 +91,7 @@ public:
     }
 
     void setId(uint_t id) {
-        Buffer::id = id;
+        Page::id = id;
     }
 
     uint_t getFrec() {

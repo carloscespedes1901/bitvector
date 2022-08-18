@@ -13,30 +13,30 @@ template<typename uint_t>
 class LRUCacheStorage : public Storage<uint_t> {
 private:
     // store page of cache
-    list <Buffer<uint_t>> pageList;
+    list <Page<uint_t>> pageList;
     // store references of page in pageList of key in cache
-    unordered_map<uint_t, typename list<Buffer<uint_t>>::iterator> map;
+    unordered_map<uint_t, typename list<Page<uint_t>>::iterator> map;
     int cacheSize; // maximum capacity of cache
 
 public:
     LRUCacheStorage(const string &fileName, int d, int csize) : Storage<uint_t>(fileName, d), cacheSize(csize) {}
 
-    virtual void appendPage(Buffer<uint_t> buffer) override;
+    virtual void appendPage(Page<uint_t> buffer) override;
 
-    virtual void updatePage(Buffer<uint_t> buffer, uint_t p) override;
+    virtual void updatePage(Page<uint_t> buffer, uint_t p) override;
 
-    virtual Buffer<uint_t> readPage(uint_t p) override;
+    virtual Page<uint_t> readPage(uint_t p) override;
 
     void close() override;
 
 private:
     inline void removeCacheEntry();
 
-    inline Buffer<uint_t> getCacheEntry(uint_t p);
+    inline Page<uint_t> getCacheEntry(uint_t p);
 
-    inline void updateCacheEntry(Buffer<uint_t> &buffer, uint_t p);
+    inline void updateCacheEntry(Page<uint_t> &buffer, uint_t p);
 
-    inline void addNewCacheEntry(Buffer<uint_t> &buffer, uint_t p);
+    inline void addNewCacheEntry(Page<uint_t> &buffer, uint_t p);
 
     inline bool cacheContains(uint_t p);
 
@@ -51,14 +51,14 @@ private:
 #include "LRUCacheStorage.h"
 
 template<typename uint_t>
-void LRUCacheStorage<uint_t>::appendPage(Buffer<uint_t> buffer) {
+void LRUCacheStorage<uint_t>::appendPage(Page<uint_t> buffer) {
     int idBuf = Storage<uint_t>::getPages();
     Storage<uint_t>::appendPage(buffer);
     addNewCacheEntry(buffer, idBuf);
 }
 
 template<typename uint_t>
-void LRUCacheStorage<uint_t>::updatePage(Buffer<uint_t> buffer, uint_t p) {
+void LRUCacheStorage<uint_t>::updatePage(Page<uint_t> buffer, uint_t p) {
     buffer.setUpdated();
     if (cacheContains(p)) {
         updateCacheEntry(buffer, p);
@@ -69,12 +69,12 @@ void LRUCacheStorage<uint_t>::updatePage(Buffer<uint_t> buffer, uint_t p) {
 
 
 template<typename uint_t>
-Buffer<uint_t> LRUCacheStorage<uint_t>::readPage(uint_t p) {
+Page<uint_t> LRUCacheStorage<uint_t>::readPage(uint_t p) {
     if (cacheContains(p)) {
         return getCacheEntry(p);
     } else {
         //ir a buscar página al disco
-        Buffer<uint_t> out(Storage<uint_t>::getD());
+        Page<uint_t> out(Storage<uint_t>::getD());
         out = Storage<uint_t>::readPage(p);
         addNewCacheEntry(out, p);
         return out;
@@ -82,10 +82,10 @@ Buffer<uint_t> LRUCacheStorage<uint_t>::readPage(uint_t p) {
 }
 
 template<typename uint_t>
-inline Buffer<uint_t> LRUCacheStorage<uint_t>::getCacheEntry(uint_t p) {
+inline Page<uint_t> LRUCacheStorage<uint_t>::getCacheEntry(uint_t p) {
     // assert(p is present in cache)
     // then move to front and return buffer.
-    Buffer<uint_t> page(Storage<uint_t>::getD());
+    Page<uint_t> page(Storage<uint_t>::getD());
     page = *(map[p]);
     pageList.erase(map[p]);
     pageList.push_front(page);
@@ -95,7 +95,7 @@ inline Buffer<uint_t> LRUCacheStorage<uint_t>::getCacheEntry(uint_t p) {
 }
 
 template<typename uint_t>
-inline void LRUCacheStorage<uint_t>::addNewCacheEntry(Buffer<uint_t> &buffer, uint_t p) {
+inline void LRUCacheStorage<uint_t>::addNewCacheEntry(Page<uint_t> &buffer, uint_t p) {
     if (cacheIsFull()) removeCacheEntry();
     pageList.push_front(buffer);
     map[p] = pageList.begin();
@@ -104,7 +104,7 @@ inline void LRUCacheStorage<uint_t>::addNewCacheEntry(Buffer<uint_t> &buffer, ui
 template<typename uint_t>
 inline void LRUCacheStorage<uint_t>::removeCacheEntry() {
     // delete least recently used element
-    Buffer<uint_t> last(Storage<uint_t>::getD());
+    Page<uint_t> last(Storage<uint_t>::getD());
     last = pageList.back();
     // Pops the last element
     pageList.pop_back();
@@ -115,7 +115,7 @@ inline void LRUCacheStorage<uint_t>::removeCacheEntry() {
 }
 
 template<typename uint_t>
-inline void LRUCacheStorage<uint_t>::updateCacheEntry(Buffer<uint_t> &buffer, uint_t p) {// present in cache
+inline void LRUCacheStorage<uint_t>::updateCacheEntry(Page<uint_t> &buffer, uint_t p) {// present in cache
     pageList.erase(map[p]);
     pageList.push_front(buffer);
     // update reference
@@ -133,7 +133,7 @@ inline bool LRUCacheStorage<uint_t>::cacheContains(uint_t p) { return map.find(p
 template<typename uint_t>
 void LRUCacheStorage<uint_t>::close() {
     //save the cache changed block
-    for (Buffer<uint_t> &page: pageList) {
+    for (Page<uint_t> &page: pageList) {
         if (page.isUpdated()) Storage<uint_t>::updatePage(page, page.getId());
     }
     pageList.clear();

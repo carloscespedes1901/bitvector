@@ -10,7 +10,7 @@
 #include <filesystem>
 #include <cassert>
 #include <map>
-#include "Buffer.h"
+#include "Page.h"
 
 using namespace std;
 
@@ -37,11 +37,11 @@ public:
     virtual void close();
 
 
-    virtual void appendPage(Buffer<uint_t> buffer);
+    virtual void appendPage(Page<uint_t> buffer);
 
-    virtual void updatePage(Buffer<uint_t> buffer, uint_t p);
+    virtual void updatePage(Page<uint_t> buffer, uint_t p);
 
-    virtual Buffer<uint_t> readPage(uint_t p);
+    virtual Page<uint_t> readPage(uint_t p);
 
     int getPages() {
         return pages;
@@ -87,7 +87,7 @@ Storage<w>::~Storage() {
 }
 
 template<typename uint_t>
-void Storage<uint_t>::appendPage(Buffer<uint_t> buffer) {
+void Storage<uint_t>::appendPage(Page<uint_t> buffer) {
     assert (file.is_open());
     file.seekp(0, std::ios::end);
     file.write(reinterpret_cast<const char *> (buffer.data()), pageSize());
@@ -96,7 +96,7 @@ void Storage<uint_t>::appendPage(Buffer<uint_t> buffer) {
 }
 
 template<typename uint_t>
-void Storage<uint_t>::updatePage(Buffer<uint_t> buffer, uint_t p) {
+void Storage<uint_t>::updatePage(Page<uint_t> buffer, uint_t p) {
     assert (p < pages);
     assert(file.is_open());
     file.seekp(p * pageSize());
@@ -107,10 +107,10 @@ void Storage<uint_t>::updatePage(Buffer<uint_t> buffer, uint_t p) {
 
 
 template<typename uint_t>
-Buffer<uint_t> Storage<uint_t>::readPage(uint_t p) {
+Page<uint_t> Storage<uint_t>::readPage(uint_t p) {
     assert (p < pages);
     assert(file.is_open());
-    Buffer<uint_t> buffer(Storage<uint_t>::getD());
+    Page<uint_t> buffer(Storage<uint_t>::getD());
     buffer.createBlock();
     file.seekg(p * pageSize());
     file.read(reinterpret_cast<char *> (buffer.data()), pageSize());

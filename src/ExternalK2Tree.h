@@ -315,7 +315,7 @@ void ExternalK2Tree<uint_t>::create(const char *point_fileName) {
     //2°) ordena los puntos en el vector
     sort(zPoint.begin(), zPoint.end());
     //3°) procesda la raiz. Aqugí se agregan los chunk en uno solo para todos los puntos. Corta si llega a 1111
-    Buffer<uint_t> buffer(storage.getD());
+    Page<uint_t> buffer(storage.getD());
     buffer.createBlock(true);
     const uint_t chunkPerBuffer = storage.bitsPerPage() / 4;
     const uint_t bytesPorBuffer = (storage.getD() * storage.bitsPerWord()) / 8;
