@@ -184,7 +184,7 @@ void test_ExternalBitVectorWithLRU() {
     cout << pruebaVector.rank((uint64_t) 999) << endl;
 
 }
-string intVec2Str(vector<unsigned long> vec){
+string intVec2Str(vector<uint64_t> vec){
     string output;
     output.append("[ ");
     for(auto i=vec.begin();i!=vec.end();++i){

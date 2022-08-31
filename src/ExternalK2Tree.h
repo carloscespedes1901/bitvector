@@ -115,10 +115,10 @@ private:
         */
     bool checkLink(uint_t i, uint_t j, uint_t node, uint_t ancho);
 
-    void directNeighbors(uint_t subMatrixSize, uint_t row, uint columnOffset, uint_t node, vector<uint_t> &neighbors);
+    void directNeighbors(uint_t subMatrixSize, uint_t row, uint_t columnOffset, uint_t node, vector<uint_t> &neighbors);
 
     void
-    reverseNeighbors(uint_t subMatrixSize, uint_t column, uint rowOffset, uint_t node, vector<uint_t> &neighbors);
+    reverseNeighbors(uint_t subMatrixSize, uint_t column, uint_t rowOffset, uint_t node, vector<uint_t> &neighbors);
     /**
      * Método interno que resuelve la consulta de los vecinos directos. Basado en
      */
@@ -171,7 +171,7 @@ bool ExternalK2Tree<uint_t>::checkLink(uint_t i, uint_t j, uint_t node, uint_t a
 }
 
 template<typename uint_t>
-void ExternalK2Tree<uint_t>::directNeighbors(uint_t matrixSize, uint_t row, uint columnOffset, uint_t node,
+void ExternalK2Tree<uint_t>::directNeighbors(uint_t matrixSize, uint_t row, uint_t columnOffset, uint_t node,
                                              vector<uint_t> &neighbors) {
     //cout << "direct(" << matrixSize << ", " << row << ", " << columnOffset << ", " << node << ")" << endl;
 
@@ -194,7 +194,7 @@ void ExternalK2Tree<uint_t>::directNeighbors(uint_t matrixSize, uint_t row, uint
 }
 
 template<typename uint_t>
-void ExternalK2Tree<uint_t>::reverseNeighbors(uint_t matrixSize, uint_t column, uint rowOffset, uint_t node,
+void ExternalK2Tree<uint_t>::reverseNeighbors(uint_t matrixSize, uint_t column, uint_t rowOffset, uint_t node,
                                               vector<uint_t> &neighbors) {
     if (matrixSize == 1) {
         if (T_L.access(node)) {
